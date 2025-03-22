@@ -1,5 +1,6 @@
 from fastapi import HTTPException
 from fastapi import status
+from fastapi.responses import JSONResponse
 
 class DecodeTokenException(HTTPException):
     """Decodificação do token"""
@@ -68,7 +69,12 @@ class InvalidCredentials(HTTPException):
 
 class InsufficientPermission(HTTPException):
     """User does not have the neccessary permissions to perform an action."""
-
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Permissões insuficientes para chamar essa rota. Por favor se autentique e tente novamente.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     pass
 
 class UserAlreadyExists(HTTPException):
@@ -85,3 +91,11 @@ class UserNotFound(HTTPException):
         )
 
     pass
+
+def configure_exception_handlers(app):
+    @app.exception_handler(HTTPException)
+    async def http_exception_handler(request, exc):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail}
+        )

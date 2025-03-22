@@ -5,12 +5,12 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 import os
 
-from app.errors import InvalidTokenException, RefreshTokenException, TokenNotFoundException, UserNotFound
+from app.errors import InsufficientPermission, InvalidTokenException, RefreshTokenException, TokenNotFoundException, UserNotFound
 from app.models.model_user import User
 from app.schemas.auth import TokenTypeEnum
 from app.schemas.user import UserInDBModel, UserModel
 from app.configs.auth import authenticate_user, create_token, decode_token
-from app.utils.auth import get_token_by_user_id, get_user_by_id, hashed_password
+from app.utils.auth import get_token_by_user_id, hashed_password
 from app.configs.database import get_db
 from app.models.model_token import Token
 
@@ -36,49 +36,52 @@ async def create_user(user: UserInDBModel, db: Session = Depends(get_db)) -> Use
 
 @router.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)) -> dict:
-    username = form_data.username
-    password = form_data.password
-    
-    user = authenticate_user(db, username, password)
-    
-    access_token = create_token(user_data={
-        "email": user.email, "user_id": user.user_id, "role": user.role
-        }
-    )
-
-    refresh_token = create_token(user_data={
-        "email": user.email, "user_id": user.user_id, "role": user.role},
-        refresh=True
-    )
-    current_data = datetime.utcnow()
-    expires_at = current_data + timedelta(minutes=int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS")))
-
-    db_token = Token(
-        user_id = user.user_id,
-        token_type = TokenTypeEnum.bearer,
-        access_token = access_token,
-        refresh_token = refresh_token,
-        expires_at = expires_at,
-        created_at = current_data
-    )
-
-    db.add(db_token)
-    db.commit()
-    db.refresh(db_token)
-
-    return JSONResponse(
-            content={
-                "message": "Login successful",
-                "access_token": access_token,
-                "refresh_token": refresh_token,
-                "user": {
-                    "username": user.user_name,
-                    "email": user.email,
-                    "role": user.role,
-                    "Expira em": expires_at.isoformat()
-                },
+    try:
+        username = form_data.username
+        password = form_data.password
+        
+        user = authenticate_user(db, username, password)
+        
+        access_token = create_token(user_data={
+            "email": user.email, "user_id": user.user_id, "role": user.role
             }
         )
+
+        refresh_token = create_token(user_data={
+            "email": user.email, "user_id": user.user_id, "role": user.role},
+            refresh=True
+        )
+        current_data = datetime.utcnow()
+        expires_at = current_data + timedelta(days=int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS")))
+
+        db_token = Token(
+            user_id = user.user_id,
+            token_type = TokenTypeEnum.bearer,
+            access_token = access_token,
+            refresh_token = refresh_token,
+            expires_at = expires_at,
+            created_at = current_data
+        )
+
+        db.add(db_token)
+        db.commit()
+        db.refresh(db_token)
+
+        return JSONResponse(
+                content={
+                    "message": "Login successful",
+                    "access_token": access_token,
+                    "refresh_token": refresh_token,
+                    "user": {
+                        "username": user.user_name,
+                        "email": user.email,
+                        "role": user.role,
+                        "Expira em": expires_at.isoformat()
+                    },
+                }
+            )
+    except:
+        raise InsufficientPermission
 
 @router.get("/refresh_token")
 async def get_new_access_token(refresh_token: str = Header(...), db: Session = Depends(get_db)) -> dict:
@@ -114,7 +117,7 @@ async def get_new_access_token(refresh_token: str = Header(...), db: Session = D
                 token_type = TokenTypeEnum.bearer,
                 access_token = new_access_token,
                 refresh_token = new_refresh_token,
-                expires_at= current_time + timedelta(minutes=int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS"))),
+                expires_at= current_time + timedelta(days=int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS"))),
                 created_at= current_time
             )
             db.add(new_token_record)

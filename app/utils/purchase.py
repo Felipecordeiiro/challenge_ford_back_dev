@@ -16,6 +16,9 @@ def get_purchase_by_id_util(purchase_id:int, db: Session = Depends(get_db)):
 def get_purchases_by_purchase_type_util(purchase_type:PurchaseEnum, db: Session = Depends(get_db)):
     return db.query(Purchase).filter(Purchase.purchase_type == purchase_type).all()
 
+def get_purchases_by_part_id_util(part_id:int, db: Session = Depends(get_db)):
+    return db.query(Purchase).filter(Purchase.part_id == part_id).all()
+
 def get_purchases_by_purchase_date_util(purchase_date:datetime, db: Session = Depends(get_db)):
     year = purchase_date.year
     month = purchase_date.month

@@ -19,6 +19,9 @@ def get_locations_by_city_util(city:str, db: Session = Depends(get_db)):
 def get_locations_by_country_util(country:str, db: Session = Depends(get_db)):
     return db.query(Location).filter(Location.country == country).all()
 
+def get_province_by_location_province_util(province:str, db: Session = Depends(get_db)):
+    return db.query(Location).filter(Location.province == province).first()
+#
 def get_locations_by_province_util(province:str, db: Session = Depends(get_db)):
     return db.query(Location).filter(Location.province == province).all()
 

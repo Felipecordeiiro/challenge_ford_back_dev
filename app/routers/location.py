@@ -84,7 +84,8 @@ def update_location(location: LocationUpdate, location_id: int, db: Session = De
     """
     Atualiza uma localização.
     """
-    update_data = location.model_dump()
+    # Converter o modelo Pydantic para um dicionário e filtrar strings vazias
+    update_data = location.model_dump()            
     update_data["location_id"] = location_id
     rows_updated = update_location_by_id_util(**update_data, db=db)
 
