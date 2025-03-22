@@ -15,16 +15,16 @@ def list_warranties(db: Session = Depends(get_db)) -> list[WarrantyResponse]:
     Lista todas as garantias.
     """
     all_warranties = get_all_warranties_util(db=db)
-    return [WarrantyResponse.model_validate(warranty) for warranty in all_warranties]
+    return [WarrantyResponse.model_validate(warranty.__dict__) for warranty in all_warranties]
 
-@router.get("/{warranty_id}")
+@router.get("/id/{warranty_id}")
 def get_warranties_by_id(claim_key:str, db: Session = Depends(get_db)) -> WarrantyResponse:
     """
     Obtém garantia pelo seu ID.
     """
     warranty = get_warranty_by_id_util(claim_key, db=db)
     if not warranty:
-        raise HTTPException(status_code=404, detail=f"Nenhuma localização encontrada para o mercado '{market}'")
+        raise HTTPException(status_code=404, detail=f"Nenhuma garantia encontrada com esse id '{claim_key}'")
     return WarrantyResponse(**warranty.__dict__)
 
 @router.post("/")
@@ -38,7 +38,7 @@ def create_warranty(warranty: WarrantyRequest,  db: Session = Depends(get_db)) -
     db.refresh(new_warranty)
     return WarrantyResponse(**new_warranty.__dict__)
 
-@router.put("/{warranty_id}")
+@router.put("/id/{warranty_id}")
 def update_warranty(warranty: WarrantyUpdate, claim_key: int, db: Session = Depends(get_db)) -> WarrantyResponse:
     """
     Atualiza uma garantia.
@@ -56,19 +56,19 @@ def update_warranty(warranty: WarrantyUpdate, claim_key: int, db: Session = Depe
     if not updated_location:
         raise HTTPException(status_code=404, detail=f"Não foi possível encontrar garantia após atualização")
     
-    return WarrantyResponse.model_validate(updated_location)
+    return WarrantyResponse.model_validate(updated_location.__dict__)
 
-@router.delete("/{warranty_id}")
-def delete_warranty(warranty: WarrantyDelete, claim_key:int, db: Session = Depends(get_db)) -> WarrantyResponse:
+@router.delete("/id/{warranty_id}")
+def delete_warranty(warranty: WarrantyDelete, db: Session = Depends(get_db)) -> WarrantyResponse:
     """
     Deleta uma garantia.
     """
-    warranty_to_delete = get_warranty_by_id_util(claim_key, db=db)
+    warranty_to_delete = get_warranty_by_id_util(warranty.claim_key, db=db)
     
     if not warranty_to_delete:
         raise HTTPException(status_code=404, detail=f"Garantia com esse id '{warranty_to_delete.claim_key}' não encontrada")
     
-    response_data = WarrantyResponse.model_validate(warranty_to_delete)
+    response_data = WarrantyResponse.model_validate(warranty_to_delete.__dict__)
 
     deleted_location = delete_warranty_by_id_util(warranty.claim_key, db=db)
 

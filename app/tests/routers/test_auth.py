@@ -27,9 +27,9 @@ def override_get_db():
 
 app.dependency_overrides[get_db] = override_get_db
 
-def test_create_user():
-    configurar_banco(SQLALCHEMY_DATABASE_URL)
+configurar_banco(SQLALCHEMY_DATABASE_URL)
 
+def test_create_user():
     new_user = {
         "user_id": 1,
         "user_name": "Teste",
@@ -47,8 +47,6 @@ def test_create_user():
     assert response.json() == new_user_copy
 
 def test_create_user_erro_minimum_char_user_name():
-    configurar_banco(SQLALCHEMY_DATABASE_URL)
-
     new_user = {
         "user_id": 1,
         "user_name": "oi",
@@ -65,8 +63,6 @@ def test_create_user_erro_minimum_char_user_name():
     assert response.json()["detail"][0]["loc"] == ["body", "user_name"]
 
 def test_create_user_erro_maximum_char_user_name():
-    configurar_banco(SQLALCHEMY_DATABASE_URL)
-
     new_user = {
         "user_id": 1,
         "user_name": "a1sd3a1d5asd1as56d1as56d1as651d6as51ds65ad1a6s51d65as1da65s1ds5a6d1a",
@@ -83,8 +79,6 @@ def test_create_user_erro_maximum_char_user_name():
     assert response.json()["detail"][0]["loc"] == ["body", "user_name"]
 
 def test_create_user_erro_minimum_char_password():
-    configurar_banco(SQLALCHEMY_DATABASE_URL)
-
     new_user = {
         "user_id": 1,
         "user_name": "Teste",
@@ -101,8 +95,6 @@ def test_create_user_erro_minimum_char_password():
     assert response.json()["detail"][0]["loc"] == ["body", "password"]
 
 def test_create_user_erro_maximum_char_password():
-    configurar_banco(SQLALCHEMY_DATABASE_URL)
-
     new_user = {
         "user_id": 1,
         "user_name": "Teste",
@@ -119,8 +111,6 @@ def test_create_user_erro_maximum_char_password():
     assert response.json()["detail"][0]["loc"] == ["body", "password"]
 
 def test_create_user_erro_minimum_char_cpf():
-    configurar_banco(SQLALCHEMY_DATABASE_URL)
-
     new_user = {
         "user_id": 1,
         "user_name": "Teste",
@@ -137,8 +127,6 @@ def test_create_user_erro_minimum_char_cpf():
     assert response.json()["detail"][0]["loc"] == ["body", "cpf"]
 
 def test_create_user_erro_maximum_char_cpf():
-    configurar_banco(SQLALCHEMY_DATABASE_URL)
-
     new_user = {
         "user_id": 1,
         "user_name": "Teste",

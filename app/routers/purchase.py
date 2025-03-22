@@ -17,7 +17,7 @@ def list_purchases(db: Session = Depends(get_db)) -> list[PurchaseResponse]:
     all_purchases = get_all_purchase_util(db=db)
     return [PurchaseResponse.model_validate(purchase.__dict__) for purchase in all_purchases]
 
-@router.get("/{purchase_id}")
+@router.get("/id/{purchase_id}")
 def get_purchase_by_id(purchase_id: int, db: Session = Depends(get_db)) -> PurchaseResponse:
     """
     Obtem compra pelo seu ID.
@@ -27,7 +27,7 @@ def get_purchase_by_id(purchase_id: int, db: Session = Depends(get_db)) -> Purch
         raise HTTPException(status_code=404, detail=f"Compra com id {purchase_id} não encontrada no banco de dados")
     return PurchaseResponse(**location.__dict__)
 
-@router.get("/{purchase_type}")
+@router.get("/type/{purchase_type}")
 def get_purchase_by_type(purchase_type: PurchaseEnum, db: Session = Depends(get_db)) -> list[PurchaseResponse]:
     """
     Obtem compras pelo tipo.
@@ -37,8 +37,8 @@ def get_purchase_by_type(purchase_type: PurchaseEnum, db: Session = Depends(get_
         raise HTTPException(status_code=404, detail=f"Nenhuma compra realizada baseada no tipo {purchase_type}")
     return [PurchaseResponse.model_validate(purchase.__dict__) for purchase in purchases]
 
-@router.get("/{purchase_date}")
-def get_purchase_by_date(purchase_date: datetime, db: Session = Depends(get_db)) -> PurchaseResponse:
+@router.get("/date/{purchase_date}")
+def get_purchase_by_date(purchase_date: datetime, db: Session = Depends(get_db)) -> list[PurchaseResponse]:
     """
     Obtem compras pela data.
     """
@@ -56,9 +56,9 @@ def create_purchase(purchase: PurchaseRequest, db: Session = Depends(get_db)) ->
     db.add(new_purchase)
     db.commit()
     db.refresh(new_purchase)
-    return PurchaseResponse(new_purchase.__dict__)
+    return PurchaseResponse(**new_purchase.__dict__)
 
-@router.post("/{purchase_id}")
+@router.put("/id/{purchase_id}")
 def update_purchase(purchase: PurchaseUpdate, purchase_id:int, db: Session = Depends(get_db)) -> PurchaseResponse:
     """
     Atualiza uma compra.
@@ -71,14 +71,15 @@ def update_purchase(purchase: PurchaseUpdate, purchase_id:int, db: Session = Dep
     if not rows_updated:
         raise HTTPException(status_code=404, detail=f"Não foi possível atualizar compra")
     
+    db.commit()
     updated_part = get_purchase_by_id(purchase_id, db=db)
 
     if not updated_part:
         raise HTTPException(status_code=404, detail=f"Não foi possível encontrar compra após atualização")
     
-    return PurchaseResponse.model_validate(updated_part)
+    return PurchaseResponse.model_validate(updated_part.__dict__)
 
-@router.delete("/{purchase_id}")
+@router.delete("/id/{purchase_id}")
 def delete_purchase(purchase: PurchaseDelete, db: Session = Depends(get_db)) -> PurchaseResponse:
     """
     Deleta uma compra.
@@ -88,7 +89,7 @@ def delete_purchase(purchase: PurchaseDelete, db: Session = Depends(get_db)) -> 
     if not purchase_to_delete:
         raise HTTPException(status_code=404, detail=f"Compra com id '{purchase.purchase_id}' não encontrada")
 
-    response_data = PurchaseResponse.model_validate(purchase_to_delete)
+    response_data = PurchaseResponse.model_validate(purchase_to_delete.__dict__)
     
     deleted_part = delete_purchase_by_id(purchase.purchase_id, db=db)
     

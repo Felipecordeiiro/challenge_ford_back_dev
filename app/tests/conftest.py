@@ -1,5 +1,5 @@
 import os
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///test.db"
+SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL")
 os.environ["DATABASE_URL"] = SQLALCHEMY_DATABASE_URL
 os.environ['TEST_DATABASE'] = 'true'

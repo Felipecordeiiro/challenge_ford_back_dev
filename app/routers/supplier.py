@@ -13,7 +13,7 @@ def list_supplier(db: Session = Depends(get_db)) -> list[SupplierResponse]:
     all_suppliers = get_all_suppliers_util(db)
     return [SupplierResponse.model_validate(supplier.__dict__) for supplier in all_suppliers]
 
-@router.get("/{supplier_id}")
+@router.get("/id/{supplier_id}")
 def get_supplier_by_id(supplier_id: int, db: Session = Depends(get_db)) -> SupplierResponse:
     """
     Obtém um fornecedor pelo seu ID.
@@ -23,7 +23,7 @@ def get_supplier_by_id(supplier_id: int, db: Session = Depends(get_db)) -> Suppl
         raise HTTPException(status_code=404, detail=f"Não foi possível encontrar o fornecedor pelo seu ID")
     return SupplierResponse.model_validate(supplier.__dict__)
 
-@router.get("/{supplier_name}")
+@router.get("/name/{supplier_name}")
 def get_supplier_by_name(supplier_name: str, db: Session = Depends(get_db)) -> SupplierResponse:
     """
     Obtém um fornecedor pelo seu nome.
@@ -33,7 +33,7 @@ def get_supplier_by_name(supplier_name: str, db: Session = Depends(get_db)) -> S
         raise HTTPException(status_code=404, detail=f"Não foi possível encontrar o fornecedor pelo seu nome")
     return SupplierResponse.model_validate(supplier.__dict__)
 
-@router.get("/{supplier_cpf}")
+@router.get("/cpf/{supplier_cpf}")
 def get_supplier_by_cpf(supplier_cpf: str, db: Session = Depends(get_db)) -> SupplierResponse:
     """
     Obtém um fornecedor pelo seu cpf.
@@ -54,19 +54,19 @@ def create_supplier(supplier: SupplierRequest, db: Session = Depends(get_db)) ->
     db.refresh(new_supplier)
     return SupplierResponse(**new_supplier.__dict__)
 
-@router.put("/{supplier_id}")
+@router.put("/id/{supplier_id}")
 def update_supplier(supplier: SupplierUpdate, supplier_id: int, db: Session = Depends(get_db)) -> SupplierResponse:
     """
     Atualiza um fornecedor.
     """
     update_data = supplier.model_dump()
-    update_data["supplier_id"] = supplier
-
+    update_data["supplier_id"] = supplier_id
     rows_updated = update_supplier_by_id_util(**update_data, db=db)
 
     if not rows_updated:
         raise HTTPException(status_code=404, detail=f"Não foi possível atualizar o fornecedor")
     
+    db.commit()
     updated_part = get_supplier_by_id_util(supplier_id, db=db)
 
     if not updated_part:
@@ -74,7 +74,7 @@ def update_supplier(supplier: SupplierUpdate, supplier_id: int, db: Session = De
     
     return SupplierResponse.model_validate(updated_part.__dict__)
 
-@router.delete("/{supplier_id}")
+@router.delete("/id/{supplier_id}")
 def delete_supplier(supplier: SupplierDelete, db: Session = Depends(get_db)) -> SupplierResponse:
     """
     Deleta um fornecedor.
@@ -82,13 +82,13 @@ def delete_supplier(supplier: SupplierDelete, db: Session = Depends(get_db)) -> 
     supplier_to_delete = get_supplier_by_name_util(supplier.supplier_name, db=db)
     
     if not supplier_to_delete:
-        raise HTTPException(status_code=404, detail=f"Supplier com nome '{supplier.supplier_name}' não encontrada")
+        raise HTTPException(status_code=404, detail=f"Fornecedor com nome '{supplier.supplier_name}' não encontrada")
 
-    response_data = SupplierResponse.model_validate(supplier_to_delete)
+    response_data = SupplierResponse.model_validate(supplier_to_delete.__dict__)
     
     deleted_part = delete_supplier_by_name(supplier.supplier_name, db=db)
     
     if not deleted_part:
-        raise HTTPException(status_code=500, detail="Falha ao excluir a parte")
+        raise HTTPException(status_code=500, detail="Falha ao excluir o fornecedor")
     
     return response_data

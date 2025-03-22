@@ -16,7 +16,7 @@ def list_location(db: Session = Depends(get_db)) -> list[LocationResponse]:
     all_locations = get_all_locations_util(db)
     return [LocationResponse.model_validate(location.__dict__) for location in all_locations]
 
-@router.get("/{location_id}")
+@router.get("/id/{location_id}")
 def get_location_by_id(location_id: int, db: Session = Depends(get_db)) -> LocationResponse:
     """
     Obtém uma localização pelo seu ID.
@@ -26,7 +26,7 @@ def get_location_by_id(location_id: int, db: Session = Depends(get_db)) -> Locat
         raise HTTPException(status_code=404, detail="Localização não encontrada")
     return LocationResponse(**location.__dict__)
 
-@router.get("/{market}")
+@router.get("/market/{market}")
 def get_location_by_market(market: str, db: Session = Depends(get_db)) -> list[LocationResponse]:
     """
     Obtém localizações a partir do nome do mercado.
@@ -36,7 +36,7 @@ def get_location_by_market(market: str, db: Session = Depends(get_db)) -> list[L
         raise HTTPException(status_code=404, detail=f"Nenhuma localização encontrada para o mercado '{market}'")
     return [LocationResponse.model_validate(location.__dict__) for location in locations]
 
-@router.get("/{country}")
+@router.get("/country/{country}")
 def get_location_by_country(country: str, db: Session = Depends(get_db)) -> list[LocationResponse]:
     """
     Obtém localizações pelo nome do país.
@@ -46,7 +46,7 @@ def get_location_by_country(country: str, db: Session = Depends(get_db)) -> list
         raise HTTPException(status_code=404, detail=f"Nenhuma localização encontrada para o país '{country}'")
     return [LocationResponse.model_validate(location.__dict__) for location in locations]
 
-@router.get("/{province}")
+@router.get("/province/{province}")
 def get_location_by_province(province: str, db: Session = Depends(get_db)) -> list[LocationResponse]:
     """
     Obtém localizações pelo nome da província.
@@ -56,7 +56,7 @@ def get_location_by_province(province: str, db: Session = Depends(get_db)) -> li
         raise HTTPException(status_code=404, detail=f"Nenhuma localização encontrada para o país '{province}'")
     return [LocationResponse.model_validate(location.__dict__) for location in locations]
 
-@router.get("/{city}")
+@router.get("/city/{city}")
 def get_location_by_city(city: str, db: Session = Depends(get_db)) -> list[LocationResponse]:
     """
     Obtém localizações pelo nome da cidade.
@@ -79,7 +79,7 @@ def create_location(location: LocationRequest, db: Session = Depends(get_db)) ->
     db.refresh(new_location)
     return LocationResponse( **new_location.__dict__ )
 
-@router.put("/{location_id}")
+@router.put("/id/{location_id}")
 def update_location(location: LocationUpdate, location_id: int, db: Session = Depends(get_db)) -> LocationResponse:
     """
     Atualiza uma localização.
@@ -89,7 +89,7 @@ def update_location(location: LocationUpdate, location_id: int, db: Session = De
     rows_updated = update_location_by_id_util(**update_data, db=db)
 
     if not rows_updated:
-        raise HTTPException(status_code=404, detail=f"Não foi possível atualizar localização")
+        raise HTTPException(status_code=404, detail=f"Não foi possível atualizar localização {rows_updated}")
     
     db.commit()
     updated_location = get_location_by_id_util(location_id, db=db)
@@ -99,7 +99,7 @@ def update_location(location: LocationUpdate, location_id: int, db: Session = De
     
     return LocationResponse.model_validate(updated_location.__dict__)
 
-@router.delete("/{location_id}")
+@router.delete("/id/{location_id}")
 def delete_location(location: LocationDelete, db: Session = Depends(get_db)) -> LocationResponse:
     """
     Deleta uma localização.
@@ -109,7 +109,7 @@ def delete_location(location: LocationDelete, db: Session = Depends(get_db)) -> 
     if not location_to_delete:
         raise HTTPException(status_code=404, detail=f"Localização com esse id '{location.location_id}' não encontrada")
     
-    response_data = LocationResponse.model_validate(location_to_delete)
+    response_data = LocationResponse.model_validate(location_to_delete.__dict__)
 
     deleted_location = delete_location_by_id_util(location.location_id, db=db)
 

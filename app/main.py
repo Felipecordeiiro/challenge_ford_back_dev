@@ -48,13 +48,13 @@ async def main(user: user_dependency, db: Session = Depends(get_db)):
     return {"message": f"{user}\nFastAPI + PostgreSQL rodando no Docker!"}
 
 app.include_router(auth.router)
+app.include_router(location.router)
+app.include_router(vehicle.router)
 app.include_router(supplier.router)
 app.include_router(purchase.router)
-app.include_router(analytical.router)
 app.include_router(part.router)
-app.include_router(location.router)
 app.include_router(warranty.router)
-app.include_router(vehicle.router)
+app.include_router(analytical.router)
 
 if "__name__" == "__main__":
     main()

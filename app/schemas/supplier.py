@@ -15,6 +15,7 @@ class SupplierRequest(BaseModel):
 class SupplierUpdate(BaseModel):
     supplier_name: Optional[str] = None
     supplier_cpf: Optional[str] = None
+    location_id: Optional[int] = None
 
 class SupplierDelete(BaseModel):
     supplier_name: str

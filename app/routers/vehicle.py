@@ -16,7 +16,17 @@ def list_vehicle(db: Session = Depends(get_db)) -> list[VehicleResponse]:
     all_vehicles = get_all_vehicles_util(db=db)
     return [VehicleResponse.model_validate(vehicle.__dict__) for vehicle in all_vehicles]
 
-@router.get("/{vehicle_model}")
+@router.get("/id/{vehicle_id}")
+def get_vehicle_by_id(vehicle_id:str, db: Session = Depends(get_db)) -> VehicleResponse:
+    """
+    Obtém um veículo pelo seu ID.
+    """
+    vehicle = get_vehicle_by_id_util(vehicle_id, db=db)
+    if not vehicle:
+        raise HTTPException(status_code=404, detail=f"Nenhum carro encontrada com esse id '{vehicle_id}'")
+    return VehicleResponse.model_validate(vehicle.__dict__)
+
+@router.get("/model/{vehicle_model}")
 def get_vehicle_by_model(vehicle_model:str, db: Session = Depends(get_db)) -> list[VehicleResponse]:
     """
     Lista todos os veículos baseado no modelo do veículo.
@@ -26,7 +36,7 @@ def get_vehicle_by_model(vehicle_model:str, db: Session = Depends(get_db)) -> li
         raise HTTPException(status_code=404, detail=f"Nenhum carro encontrada desse modelo '{vehicle_model}'")
     return [VehicleResponse.model_validate(vehicle.__dict__) for vehicle in vehicles]
 
-@router.get("/{vehicle_propulsion}")
+@router.get("/propulsion/{vehicle_propulsion}")
 def get_vehicle_by_propulsion(vehicle_propulsion:str, db: Session = Depends(get_db)) -> list[VehicleResponse]:
     """
     Lista todos os veículos baseado na propulsão do veículo.
@@ -36,7 +46,7 @@ def get_vehicle_by_propulsion(vehicle_propulsion:str, db: Session = Depends(get_
         raise HTTPException(status_code=404, detail=f"Nenhum carro encontrado com esse tipo de propulsão '{vehicle_propulsion}'")
     return [VehicleResponse.model_validate(vehicle.__dict__) for vehicle in vehicles]
 
-@router.get("/{vehicle_year}")
+@router.get("/year/{vehicle_year}")
 def get_vehicle_by_year(vehicle_year:int, db: Session = Depends(get_db)) -> list[VehicleResponse]:
     vehicles = get_vehicle_by_year_util(vehicle_year, db=db)
     if not vehicles:
@@ -54,7 +64,7 @@ def create_vehicle(vehicle: VehicleRequest, db: Session = Depends(get_db)) -> Ve
     db.refresh(new_vehicle)
     return VehicleResponse(**new_vehicle.__dict__)
 
-@router.put("/{vehicle_id}")
+@router.put("/id/{vehicle_id}")
 def update_vehicle(vehicle: VehicleUpdate, vehicle_id: int, db: Session = Depends(get_db)) -> VehicleResponse:
     """
     Atualiza um veículo.
@@ -74,7 +84,7 @@ def update_vehicle(vehicle: VehicleUpdate, vehicle_id: int, db: Session = Depend
     
     return VehicleResponse.model_validate(updated_vehicle.__dict__)
 
-@router.delete("/{vehicle_id}")
+@router.delete("/id/{vehicle_id}")
 def delete_vehicle(vehicle: VehicleDelete, db: Session = Depends(get_db)) -> VehicleResponse:
     """
     Deleta um veículo.

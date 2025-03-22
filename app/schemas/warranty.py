@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 from pydantic import BaseModel
 
 class WarrantyResponse(BaseModel):
@@ -10,7 +11,7 @@ class WarrantyResponse(BaseModel):
     part_id: int
     classified_failured: str
     location_id: int
-    purchance_id: int
+    purchase_id: int
 
 class WarrantyRequest(BaseModel):
     vehicle_id: int
@@ -20,13 +21,17 @@ class WarrantyRequest(BaseModel):
     part_id: int
     classified_failured: str
     location_id: int
-    purchance_id: int
+    purchase_id: int
 
 class WarrantyUpdate(BaseModel):
-    repair_date: datetime
-    client_comment: str
-    tech_comment: str
-    classified_failured: str
+    vehicle_id: Optional[int] = None
+    repair_date: Optional[datetime] = None
+    client_comment: Optional[str] = None
+    tech_comment: Optional[str] = None
+    part_id: Optional[int] = None
+    classified_failured: Optional[str] = None
+    location_id: Optional[int] = None
+    purchase_id: Optional[int] = None
 
 class WarrantyDelete(BaseModel):
     claim_key: int

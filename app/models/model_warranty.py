@@ -1,5 +1,4 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
-from sqlalchemy.orm import relationship
 from app.configs.database import Base
 
 class Warranty(Base):
@@ -13,4 +12,4 @@ class Warranty(Base):
     part_id = Column(Integer, ForeignKey('parts.part_id'))
     classified_failured = Column(String)
     location_id = Column(Integer, ForeignKey('locations.location_id'))
-    purchance_id = Column(Integer, ForeignKey('purchases.purchase_id'))
+    purchase_id = Column(Integer, ForeignKey('purchases.purchase_id'))
