@@ -15,6 +15,9 @@ def get_vehicle_by_id_util(vehicle_id:int, db: Session = Depends(get_db)):
 def get_vehicle_by_model_util(model:str, db: Session = Depends(get_db)):
     return db.query(Vehicle).filter(Vehicle.model == model).all()
 
+def get_vehicle_by_warranty(model:str, db: Session = Depends(get_db)):
+    return db.query(Vehicle).filter(Vehicle.model == model).all()
+
 def get_vehicle_by_propulsion_util(propulsion: PropulsionEnum, db: Session = Depends(get_db)):
     return db.query(Vehicle).filter(Vehicle.propulsion == propulsion).all()
 

@@ -17,7 +17,7 @@ def get_user_by_user_name(user_name:str, db: Session = Depends(get_db)):
 def get_user_by_email(email:str, db: Session = Depends(get_db)):
     return db.query(User).filter(User.email == email).first()
 
-def get_user_by_id(user_id:str, db: Session = Depends(get_db)):
+def get_user_by_id_util(user_id:str, db: Session = Depends(get_db)):
     return db.query(User).filter(User.user_id == user_id).first()
 
 def get_token_by_user_id(user_id: int, refresh_token: str, db: Session = Depends(get_db)):

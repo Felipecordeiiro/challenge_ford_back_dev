@@ -2,19 +2,6 @@ from enum import Enum
 from typing import Optional
 from pydantic import BaseModel
 
-class LocationResponse(BaseModel):
-    location_id: int
-    market: str
-    country: str
-    province: str
-    city: str
-
-class LocationRequest(BaseModel):
-    market: str
-    country: str
-    province: str
-    city: str
-
 class MarketEnum(str, Enum):
     north_america = "north_america"
     south_america = "south_america"
@@ -28,6 +15,19 @@ class MarketEnum(str, Enum):
     east_asia = "east_asia"
     south_asia = "south_asia"
     central_asia = "central_asia"
+
+class LocationResponse(BaseModel):
+    location_id: int
+    market: MarketEnum
+    country: str
+    province: str
+    city: str
+
+class LocationRequest(BaseModel):
+    market: MarketEnum
+    country: str
+    province: str
+    city: str
 
 class LocationUpdate(BaseModel):
     market: Optional[MarketEnum] = None

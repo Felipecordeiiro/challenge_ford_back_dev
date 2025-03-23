@@ -13,6 +13,9 @@ def get_part_by_id_util(part_id:int, db: Session = Depends(get_db)):
 def get_part_by_name_util(part_name:str, db: Session = Depends(get_db)):
     return db.query(Part).filter(Part.part_name == part_name).first()
 
+def get_parts_by_supplier_id_util(supplier_id:str, db: Session = Depends(get_db)):
+    return db.query(Part).filter(Part.supplier_id == supplier_id).all()
+
 def update_part_by_id_util(part_name:str = None, part_id: int = None, db: Session = Depends(get_db)):
     update_data = {}
     

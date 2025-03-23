@@ -11,8 +11,11 @@ def get_all_warranties_util(db: Session = Depends(get_db)):
 def get_warranty_by_id_util(claim_key:int, db: Session = Depends(get_db)):
     return db.query(Warranty).filter(Warranty.claim_key == claim_key).first()
 
-def get_warranties_by_vehicle_id(vehicle_id:int, db: Session = Depends(get_db)):
+def get_warranties_by_vehicle_id_util(vehicle_id:int, db: Session = Depends(get_db)):
     return db.query(Warranty).filter(Warranty.vehicle_id == vehicle_id).all()
+
+def get_warranties_by_part_id_util(part_id:int, db: Session = Depends(get_db)):
+    return db.query(Warranty).filter(Warranty.part_id == part_id).all()
 
 def delete_warranty_by_id_util(claim_key:int, db: Session = Depends(get_db)):
     rows_deleted = db.query(Warranty).filter(Warranty.claim_key == claim_key).delete()

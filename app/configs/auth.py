@@ -9,8 +9,8 @@ import os
 from app.configs.database import get_db
 from app.schemas.auth import TokenDataModel
 from app.schemas.user import IsActiveEnum, UserInDBModel, UserModel
-from app.utils.auth import get_user_by_user_name, verify_password
-from app.errors import DecodeTokenException, EncodingTokenException, InvalidCredentials, InvalidTokenException, TokenExpiredException
+from app.utils.auth import get_user_by_id_util, get_user_by_user_name, verify_password
+from app.errors import DecodeTokenException, EncodingTokenException, InsufficientPermission, InvalidCredentials, InvalidTokenException, TokenExpiredException
 from app.models.model_user import User
 
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -74,36 +74,31 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)], db: Se
             SECRET_KEY, 
             algorithms=[ALGORITHM]
         )
-        username: str = payload.get("sub")
-        if 'user_name' not in payload and 'mode' not in payload:
+        user_data = payload["user"]
+        user_id = user_data.get("user_id")
+
+        if not user_id:
             raise InvalidCredentials
-        if payload['mode'] != 'refresh_token':
-            raise InvalidCredentials
-        user = get_user_by_user_name(username, db)
-        if username is None:
-            raise HTTPException(status_code=401, detail="Usuário inválido.")
+
+        user = get_user_by_id_util(user_id, db)
+
+        if user is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuário inválido.")
         
-        token_data = TokenDataModel(username=username)
+        return user
     except JWTError:
-        raise InvalidCredentials
-
-    user = get_user_by_user_name(token_data.username, db)
-
-    if user is None:
-        raise InvalidCredentials
+        raise InsufficientPermission
     
-    return user
-
-async def get_current_active_user(current_user: UserInDBModel = Depends(get_current_user)) -> UserModel:
+async def get_current_active_user(current_user: UserInDBModel = Depends(get_current_user)) -> UserInDBModel:
     if current_user.is_active == IsActiveEnum.deactivated:
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Usuário inativo")
 
     return current_user
 
 def authenticate_user(db, username: str, password: str):
     user = get_user_by_user_name(username, db)
     if not user:
-        raise HTTPException(status_code=401, detail=f"Usuário ou senha inválido.")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Usuário ou senha inválido.")
     if not verify_password(password, user.password):
-        raise HTTPException(status_code=401, detail=f"Senha inválida. \nuser.password: {user.password}\npassword: {password}")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Senha inválida. \nuser.password: {user.password}\npassword: {password}")
     return user
