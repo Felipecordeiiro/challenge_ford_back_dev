@@ -23,7 +23,11 @@ O diferencial do FastAPI é que disponibiliza, além do muito rápido, também u
 docker compose up --build
 ```
 
-Para buildar toda a imagem docker, que já subirá com um postgresql.
+Para buildar toda a imagem docker, que já subirá com um postgresql. E acessar através do seu browser:
+
+```
+http://localhost:8000/docs
+```
 
 Para análise dos testes integrados, aconselha-se que você rode após testagem das rotas da API. Para isso, basta que você entre no ambiente virtual que foi criado através do seguinte comando:
 
