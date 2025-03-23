@@ -45,6 +45,12 @@ No ubuntu:
 source .venv/bin/activate
 ```
 
+Por fim, rode o comando:
+
+```
+uv run pytest
+```
+
 Dentre todas as 5 etapas obrigatórias do desafio, eu consegui realizar todas as básicas:
 *   [ x ] Modelagem do banco de dados e uso do ORM: até 1 ponto.
 *   [ x ] Implementação da API REST e das rotas de analytics: até 3 pontos.
