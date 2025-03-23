@@ -26,10 +26,11 @@ def analytics_supplier_by_province(location_province:str, db: Session = Depends(
     - Top 5 fornecedores com maior volume de vendas
     - Comparação com a média da província
     """
+    
+    province_exists = get_province_by_location_province_util(location_province, db=db)
+    if not province_exists:
+            raise HTTPException(status_code=404, detail=f"Província '{location_province}' não encontrada")
     try:
-        province_exists = get_province_by_location_province_util(location_province, db=db)
-        if not province_exists:
-                raise HTTPException(status_code=404, detail=f"Província '{location_province}' não encontrada")
         locations = get_locations_by_province_util(location_province, db=db)
         location_ids = [loc.location_id for loc in locations]
             
@@ -164,13 +165,18 @@ def analytics_by_purchase_type(purchase_type: PurchaseEnum, db: Session = Depend
     """
     Obtém estatísticas de compras por tipo (bulk, warranty)
     """
+    
+    purchases = get_purchases_by_purchase_type_util(purchase_type, db=db)
+    if not purchases:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail={
+                "purchase_type": purchase_type.value, 
+                "total_count": 0, 
+                "message": f"Nenhuma compra do tipo {purchase_type.value} encontrada"
+            }
+        )
     try:
-        purchases = get_purchases_by_purchase_type_util(purchase_type, db=db)
-        if not purchases:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, 
-                detail=f" 'purchase_type': {purchase_type.value}, 'total_count': 0, 'message': f'Nenhuma compra do tipo {purchase_type.value} encontrada'"
-                )
         # Agrupa por mês para análise de tendência
         monthly_data = defaultdict(int)
         parts_count = defaultdict(int)
@@ -211,15 +217,14 @@ def analytics_by_vehicle_model(vehicle_model: str, db: Session = Depends(get_db)
     """
     Obtém estatísticas baseado no modelo do veículo
     """
+    vehicles = get_vehicle_by_model_util(vehicle_model, db=db)
+
+    if not vehicles:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail=f" 'vehicle_model': {vehicle_model}, 'total_count': 0, 'message': f'Nenhum modelo {vehicle_model} de carro encontrado'"
+            )
     try:
-        vehicles = get_vehicle_by_model_util(vehicle_model, db=db)
-
-        if not vehicles:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, 
-                detail=f" 'vehicle_model': {vehicle_model}, 'total_count': 0, 'message': f'Nenhum modelo {vehicle_model} de carro encontrado'"
-                )
-
         parts_count = defaultdict(int)
         propulsion_count = defaultdict(int)
         total_warranty_claims = 0
@@ -292,13 +297,14 @@ def analytics_part_by_propulsion_type(propulsion_type: PropulsionEnum, db: Sessi
     """
     Obtém a quantidade de peças vendidas baseado na propulsão do veículo
     """
+    
+    vehicles = get_vehicle_by_propulsion_util(propulsion_type, db=db)
+    if not vehicles:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail=f" 'propulsion_type_vehicle': {propulsion_type.value}, 'total_count': 0, 'message': f'Nenhum tipo de propulsão {propulsion_type.value} de carro encontrado'"
+            )
     try:
-        vehicles = get_vehicle_by_propulsion_util(propulsion_type, db=db)
-        if not vehicles:
-            raise HTTPException(
-                status_code=404, 
-                detail=f" 'propulsion_type_vehicle': {propulsion_type.value}, 'total_count': 0, 'message': f'Nenhum tipo de propulsão {propulsion_type.value} de carro encontrado'"
-                )
         # Inicializa dicionários para estatísticas
         part_stats = defaultdict(lambda: {"count": 0, "vehicles": 0, "models": set()})
         model_count = defaultdict(int)
@@ -373,15 +379,14 @@ def analytics_supplier_by_part(supplier_name: str, db: Session = Depends(get_db)
     Obtém análise detalhada das peças fornecidas por um determinado fornecedor,
     incluindo estatísticas de falhas, uso em diferentes modelos de veículos e tendências.
     """
-    try:
-        supplier = get_supplier_by_name_util(supplier_name, db=db)
+    supplier = get_supplier_by_name_util(supplier_name, db=db)
 
-        if not supplier:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Fornecedor '{supplier_name}' não encontrado"
-            )
-        
+    if not supplier:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Fornecedor '{supplier_name}' não encontrado"
+        )
+    try:
         parts = get_parts_by_supplier_id_util(supplier.supplier_id, db=db)
         if not parts:
             return {
@@ -398,7 +403,7 @@ def analytics_supplier_by_part(supplier_name: str, db: Session = Depends(get_db)
         
         for part in parts:
             # Busca garantias relacionadas a esta peça
-            warranties = get_warranties_by_part_id_util(part.part_id, db)
+            warranties = get_warranties_by_part_id_util(part.part_id, db=db)
             
             # Agrupa por modelo de veículo e tipo de propulsão
             model_stats = defaultdict(int)
@@ -411,7 +416,7 @@ def analytics_supplier_by_part(supplier_name: str, db: Session = Depends(get_db)
             
             for warranty in warranties:
                 # Obtém informações do veículo
-                vehicle = get_vehicle_by_id_util(warranty.vehicle_id)
+                vehicle = get_vehicle_by_id_util(warranty.vehicle_id, db=db)
                 if vehicle:
                     model_stats[vehicle.model] += 1
                     propulsion_stats[vehicle.propulsion] += 1

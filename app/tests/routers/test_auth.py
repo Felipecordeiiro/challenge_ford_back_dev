@@ -8,7 +8,7 @@ import os
 
 client = TestClient(app)
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///test.db"
+SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 os.environ["DATABASE_URL"] = SQLALCHEMY_DATABASE_URL
 os.environ['TEST_DATABASE'] = 'true'
 
@@ -30,6 +30,7 @@ app.dependency_overrides[get_db] = override_get_db
 configurar_banco(SQLALCHEMY_DATABASE_URL)
 
 def test_create_user():
+
     new_user = {
         "user_id": 1,
         "user_name": "Teste",
@@ -42,8 +43,11 @@ def test_create_user():
         "role": "user"
     }
     new_user_copy = new_user.copy()	
-    response = client.post("/register", json=new_user)
-    assert response.status_code == 200
+    response = client.post("/auth/signup", json=new_user)
+
+    new_user_copy["password"] = response.json()["password"]
+
+    assert response.status_code == 201
     assert response.json() == new_user_copy
 
 def test_create_user_erro_minimum_char_user_name():
@@ -58,7 +62,7 @@ def test_create_user_erro_minimum_char_user_name():
         "is_active": 1,
         "role": "user"
     }
-    response = client.post("/register", json=new_user)
+    response = client.post("/auth/signup", json=new_user)
     assert response.status_code == 422
     assert response.json()["detail"][0]["loc"] == ["body", "user_name"]
 
@@ -74,7 +78,7 @@ def test_create_user_erro_maximum_char_user_name():
         "is_active": 1,
         "role": "user"
     }
-    response = client.post("/register", json=new_user)
+    response = client.post("/auth/signup", json=new_user)
     assert response.status_code == 422
     assert response.json()["detail"][0]["loc"] == ["body", "user_name"]
 
@@ -90,7 +94,7 @@ def test_create_user_erro_minimum_char_password():
         "is_active": 1,
         "role": "user"
     }
-    response = client.post("/register", json=new_user)
+    response = client.post("/auth/signup", json=new_user)
     assert response.status_code == 422
     assert response.json()["detail"][0]["loc"] == ["body", "password"]
 
@@ -100,13 +104,13 @@ def test_create_user_erro_maximum_char_password():
         "user_name": "Teste",
         "cpf": "12345678900",
         "email": "test@gmail.com",
-        "password": "123456789101112131415161718192021",
+        "password": "123456789101112131415161718192021123456789101112131415161718192021123456789101112131415161718192021",
         "created_at": "2021-07-01T00:00:00",
         "updated_at": "2021-07-01T00:00:00",
         "is_active": 1,
         "role": "user"
     }
-    response = client.post("/register", json=new_user)
+    response = client.post("/auth/signup", json=new_user)
     assert response.status_code == 422
     assert response.json()["detail"][0]["loc"] == ["body", "password"]
 
@@ -122,7 +126,7 @@ def test_create_user_erro_minimum_char_cpf():
         "is_active": 1,
         "role": "user"
     }
-    response = client.post("/register", json=new_user)
+    response = client.post("/auth/signup", json=new_user)
     assert response.status_code == 422
     assert response.json()["detail"][0]["loc"] == ["body", "cpf"]
 
@@ -138,6 +142,6 @@ def test_create_user_erro_maximum_char_cpf():
         "is_active": 1,
         "role": "user"
     }
-    response = client.post("/register", json=new_user)
+    response = client.post("/auth/signup", json=new_user)
     assert response.status_code == 422
     assert response.json()["detail"][0]["loc"] == ["body", "cpf"]

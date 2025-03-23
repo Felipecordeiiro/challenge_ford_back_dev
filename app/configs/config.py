@@ -4,7 +4,7 @@ import os
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 TEST_DATABASE = os.getenv('TEST_DATABASE', 'false') in ('true', 'yes')
-os.environ['TEST_DATABASE'] = 'false'
+os.environ['TEST_DATABASE'] = 'true'
 
 def configurar_banco(database_url = DATABASE_URL, force_drop=False):
     engine = create_engine(database_url)
